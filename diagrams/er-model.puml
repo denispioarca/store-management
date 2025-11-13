@@ -1,0 +1,88 @@
+@startuml
+title Store Management API - ER Diagram
+
+entity "products" as products {
+  * id : UUID <<PK>>
+  --
+  * sku : varchar(100) <<UNIQUE>>
+  * name : varchar(255)
+  description : text
+  * price : numeric(19,2)
+  * currency : varchar(3)
+  * status : varchar(30) // ACTIVE, INACTIVE, DISCONTINUED, ...
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "inventory" as inventory {
+  * product_id : UUID <<PK, FK to products.id>>
+  --
+  * quantity : bigint
+  * version : bigint
+  updated_at : timestamptz
+}
+
+entity "inventory_movements" as inventory_movements {
+  * id : bigint <<PK>>
+  --
+  * product_id : UUID <<FK to products.id>>
+  * user_id : bigint <<FK to users.id>>
+  * quantity_change : bigint
+  * resulting_quantity : bigint
+  * type : varchar(30)  // INCREASE, DECREASE, ADJUSTMENT
+  reason : text
+  created_at : timestamptz
+}
+
+entity "price_change_history" as price_change_history {
+  * id : bigint <<PK>>
+  --
+  * product_id : UUID <<FK to products.id>>
+  * old_price : numeric(19,2)
+  * new_price : numeric(19,2)
+  * currency : varchar(3)
+  * changed_by_user_id : bigint <<FK to users.id>>
+  reason : text
+  changed_at : timestamptz
+}
+
+entity "users" as users {
+  * id : bigint <<PK>>
+  --
+  * username : varchar(100) <<UNIQUE>>
+  * email : varchar(255) <<UNIQUE>>
+  * password : varchar(255)
+  first_name : varchar(100)
+  last_name : varchar(100)
+  phone : varchar(30)
+  * enabled : boolean
+  * locked : boolean
+  created_at : timestamptz
+  updated_at : timestamptz
+}
+
+entity "roles" as roles {
+  * id : bigint <<PK>>
+  --
+  * name : varchar(100) <<UNIQUE>>  // ROLE_ADMIN, ROLE_MANAGER, ROLE_VIEWER
+  description : varchar(255)
+}
+
+entity "user_roles" as user_roles {
+  * user_id : bigint <<FK to users.id>>
+  * role_id : bigint <<FK to roles.id>>
+  --
+  <<PK>> (user_id, role_id)
+}
+
+products ||--|| inventory : "1-1 (product stock)"
+products ||--o{ inventory_movements : "1-N (stock movements)"
+products ||--o{ price_change_history : "1-N (price changes)"
+
+users ||--o{ inventory_movements : "1-N"
+users ||--o{ price_change_history : "1-N"
+
+users ||--o{ user_roles : "1-N"
+roles ||--o{ user_roles : "1-N"
+
+@enduml

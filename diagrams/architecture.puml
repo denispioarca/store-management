@@ -1,0 +1,111 @@
+@startuml
+title Store Management API - High-Level Architecture
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+
+package "Client" {
+  component "REST Client (Postman/Frontend)" as RestClient
+}
+
+package "Spring Boot Application" {
+
+  package "infrastructure.web\n(REST Controllers)" {
+    component "ProductController" as ProductController
+    component "InventoryController" as InventoryController
+    component "AuthController" as AuthController
+  }
+
+  package "application.service\n(Orchestration)" {
+    component "ProductAppService" as ProductAppService
+    component "InventoryAppService" as InventoryAppService
+    component "AuthAppService" as AuthAppService
+  }
+
+  package "domain.service\n(Business Logic)" {
+    component "ProductService" as ProductService
+    component "InventoryService" as InventoryService
+    component "PriceChangeHistoryService" as PriceChangeHistoryService
+  }
+
+  package "domain.model\n(Domain Models)" {
+    component "Product" as ProductModel
+    component "Inventory" as InventoryModel
+    component "InventoryMovement" as InventoryMovementModel
+    component "PriceChangeHistory" as PriceChangeHistoryModel
+    component "User" as UserModel
+    component "Role" as RoleModel
+  }
+
+  package "infrastructure.persistence\n(JPA / Repositories)" {
+    component "ProductRepository" as ProductRepository
+    component "InventoryRepository" as InventoryRepository
+    component "InventoryMovementRepository" as InventoryMovementRepository
+    component "PriceChangeHistoryRepository" as PriceChangeHistoryRepository
+    component "UserRepository" as UserRepository
+    component "RoleRepository" as RoleRepository
+  }
+
+  package "infrastructure.security\n(Spring Security + JWT)" {
+    component "SecurityConfig" as SecurityConfig
+    component "JwtAuthenticationFilter" as JwtAuthenticationFilter
+    component "JwtTokenProvider" as JwtTokenProvider
+    component "CustomUserDetailsService" as CustomUserDetailsService
+  }
+
+  package "common\n(Error Handling & Logging)" {
+    component "GlobalExceptionHandler" as GlobalExceptionHandler
+    component "ErrorResponse" as ErrorResponse
+  }
+}
+
+package "Database (H2 dev / PostgreSQL prod)" {
+  component "products table" as ProductsTable
+  component "inventory table" as InventoryTable
+  component "inventory_movements table" as InventoryMovementsTable
+  component "price_change_history table" as PriceChangeHistoryTable
+  component "users table" as UsersTable
+  component "roles table" as RolesTable
+  component "user_roles table" as UserRolesTable
+}
+
+RestClient --> ProductController
+RestClient --> InventoryController
+RestClient --> AuthController
+
+ProductController --> ProductAppService
+InventoryController --> InventoryAppService
+AuthController --> AuthAppService
+
+ProductAppService --> ProductService
+ProductAppService --> PriceChangeHistoryService
+
+InventoryAppService --> InventoryService
+
+AuthAppService --> CustomUserDetailsService
+AuthAppService --> JwtTokenProvider
+
+ProductService --> ProductRepository
+InventoryService --> InventoryRepository
+InventoryService --> InventoryMovementRepository
+PriceChangeHistoryService --> PriceChangeHistoryRepository
+
+CustomUserDetailsService --> UserRepository
+CustomUserDetailsService --> RoleRepository
+
+SecurityConfig --> JwtAuthenticationFilter
+JwtAuthenticationFilter --> JwtTokenProvider
+JwtAuthenticationFilter --> CustomUserDetailsService
+
+ProductRepository --> ProductsTable
+InventoryRepository --> InventoryTable
+InventoryMovementRepository --> InventoryMovementsTable
+PriceChangeHistoryRepository --> PriceChangeHistoryTable
+UserRepository --> UsersTable
+RoleRepository --> RolesTable
+
+GlobalExceptionHandler ..> ProductController
+GlobalExceptionHandler ..> InventoryController
+GlobalExceptionHandler ..> AuthController
+
+@enduml
