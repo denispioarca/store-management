@@ -7,6 +7,7 @@ import com.example.store_management.domain.model.Product;
 import com.example.store_management.domain.model.ProductStatus;
 import com.example.store_management.domain.service.PriceChangeHistoryService;
 import com.example.store_management.domain.service.ProductService;
+import com.example.store_management.domain.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class ProductAppService {
 
     private final ProductService productService;
     private final PriceChangeHistoryService priceChangeHistoryService;
+    private final InventoryService inventoryService;
 
     /**
      * Creates a new product based on the incoming request and returns a response DTO.
@@ -32,6 +34,10 @@ public class ProductAppService {
     public ProductResponse createProduct(ProductCreateRequest request) {
         Product product = mapToDomain(request);
         Product created = productService.createProduct(product);
+
+        // create initial inventory with quantity 0
+        inventoryService.createInitialInventoryForProduct(created.id());
+
         return mapToResponse(created);
     }
 
@@ -49,16 +55,16 @@ public class ProductAppService {
      * This method orchestrates both the product update and the audit in a single transaction.
      */
     @Transactional
-    public ProductResponse changePrice(ProductPriceChangeRequest request) {
-        // load current state
-        Product before = productService.getProductById(request.productId());
+    public ProductResponse changePrice(UUID productId, ProductPriceChangeRequest request) {
+        // before state
+        Product before = productService.getProductById(productId);
 
-        // update price in product
-        Product after = productService.changePrice(request.productId(), request.newPrice());
+        // update price
+        Product after = productService.changePrice(productId, request.newPrice());
 
-        // record history
+        // audit
         priceChangeHistoryService.recordPriceChange(
-                request.productId(),
+                productId,
                 before.price(),
                 after.price(),
                 after.currency(),

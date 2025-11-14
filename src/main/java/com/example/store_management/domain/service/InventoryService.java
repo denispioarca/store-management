@@ -28,6 +28,32 @@ public class InventoryService {
     private final InventoryMovementRepository inventoryMovementRepository;
 
     /**
+     * Creates an initial inventory entry for a newly created product.
+     * If the inventory already exists, it is simply returned.
+     * <p>
+     * Note: we deliberately do NOT set the version field here.
+     * Leaving version as null allows Hibernate to treat this as a new entity,
+     * perform an INSERT, and initialize the version (optimistic locking) correctly.
+     */
+    @Transactional
+    public Inventory createInitialInventoryForProduct(UUID productId) {
+        return inventoryRepository.findById(productId)
+                // If inventory already exists, return domain object
+                .map(InventoryMapper::toDomain)
+                .orElseGet(() -> {
+                    InventoryEntity entity = InventoryEntity.builder()
+                            .productId(productId)
+                            .quantity(0L)
+                            // version is intentionally left null
+                            .updatedAt(OffsetDateTime.now())
+                            .build();
+
+                    InventoryEntity saved = inventoryRepository.save(entity);
+                    return InventoryMapper.toDomain(saved);
+                });
+    }
+
+    /**
      * Returns the inventory for a product.
      */
     @Transactional(readOnly = true)

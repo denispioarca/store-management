@@ -6,15 +6,12 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 /**
  * Request payload for changing the price of a product.
+ * Product id is provided via path variable, not in the body.
  */
 public record ProductPriceChangeRequest(
-
-        @NotNull
-        UUID productId,
 
         @NotNull
         @Positive
@@ -23,7 +20,7 @@ public record ProductPriceChangeRequest(
 
         /**
          * Optional id of the user who performed the change.
-         * This will be filled from the authenticated user in a real scenario.
+         * Typically resolved from security context.
          */
         Long changedByUserId,
 

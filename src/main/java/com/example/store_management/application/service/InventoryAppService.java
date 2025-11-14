@@ -32,9 +32,9 @@ public class InventoryAppService {
      * Adjusts inventory quantity based on the request and returns the updated inventory as DTO.
      */
     @Transactional
-    public InventoryResponse adjustInventory(InventoryAdjustmentRequest request) {
+    public InventoryResponse adjustInventory(UUID productId, InventoryAdjustmentRequest request) {
         Inventory inventory = inventoryService.adjustQuantity(
-                request.productId(),
+                productId,
                 request.quantityChange(),
                 request.performedByUserId(),
                 request.reason()
