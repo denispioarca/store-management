@@ -34,6 +34,11 @@ public class PriceChangeHistoryService {
                                                 Long changedByUserId,
                                                 String reason) {
 
+        if (oldPrice != null && oldPrice.compareTo(newPrice) == 0) {
+            // No effective change, do not record history
+            throw new IllegalArgumentException("The new price shouldn't be equal with the old price for the product with id " + productId);
+        }
+
         PriceChangeHistoryEntity entity = PriceChangeHistoryEntity.builder()
                 .productId(productId)
                 .oldPrice(oldPrice)

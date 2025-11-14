@@ -2,6 +2,7 @@ package com.example.store_management.domain.service;
 
 import com.example.store_management.common.exception.InsufficientStockException;
 import com.example.store_management.common.exception.InventoryNotFoundException;
+import com.example.store_management.common.exception.ProductNotFoundException;
 import com.example.store_management.domain.model.Inventory;
 import com.example.store_management.domain.model.InventoryMovement;
 import com.example.store_management.infrastructure.persistence.entity.InventoryEntity;
@@ -10,6 +11,7 @@ import com.example.store_management.infrastructure.persistence.mapper.InventoryM
 import com.example.store_management.infrastructure.persistence.mapper.InventoryMovementMapper;
 import com.example.store_management.infrastructure.persistence.repo.InventoryMovementRepository;
 import com.example.store_management.infrastructure.persistence.repo.InventoryRepository;
+import com.example.store_management.infrastructure.persistence.repo.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
+    private final ProductRepository productRepository;
 
     /**
      * Creates an initial inventory entry for a newly created product.
@@ -61,6 +64,8 @@ public class InventoryService {
      */
     @Transactional(readOnly = true)
     public Inventory getInventoryForProduct(UUID productId) {
+        checkIfTheProductExists(productId);
+
         InventoryEntity entity = inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new InventoryNotFoundException("Inventory not found for product " + productId));
         return InventoryMapper.toDomain(entity);
@@ -72,6 +77,8 @@ public class InventoryService {
      */
     @Transactional(readOnly = true)
     public List<InventoryMovement> getMovementsForProduct(UUID productId) {
+        checkIfTheProductExists(productId);
+
         boolean inventoryExists = inventoryRepository.existsById(productId);
         if (!inventoryExists) {
             throw new InventoryNotFoundException(
@@ -100,10 +107,17 @@ public class InventoryService {
                                     Long performedByUserId,
                                     String reason) {
 
+        checkIfTheProductExists(productId);
+
         InventoryEntity entity = inventoryRepository.findById(productId)
                 .orElseThrow(() -> new InventoryNotFoundException(
                         "Inventory for product id %s was not found".formatted(productId)
                 ));
+
+        if (quantityChange == 0) {
+            // No change in quantity, do not touch DB or log movement
+            return InventoryMapper.toDomain(entity);
+        }
 
         long currentQuantity = entity.getQuantity() != null ? entity.getQuantity() : 0L;
         long newQuantity = currentQuantity + quantityChange;
@@ -134,6 +148,13 @@ public class InventoryService {
         inventoryMovementRepository.save(movement);
 
         return InventoryMapper.toDomain(savedInventory);
+    }
+
+    private void checkIfTheProductExists(UUID productId) {
+        boolean productExists = productRepository.existsById(productId);
+        if (!productExists) {
+            throw new ProductNotFoundException("Product not found for productId " + productId);
+        }
     }
 
     private String resolveMovementType(long quantityChange) {

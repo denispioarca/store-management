@@ -69,6 +69,7 @@ public class ProductService {
     /**
      * Changes the price of a product.
      * Actual recording of the price change in history is done by PriceChangeHistoryService.
+     * * If the new price is equal to the current price, this method is a no-op.
      *
      * @param productId product identifier
      * @param newPrice  new price (> 0)
@@ -81,6 +82,12 @@ public class ProductService {
 
         ProductEntity entity = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id " + productId));
+
+        BigDecimal currentPrice = entity.getPrice();
+        if (currentPrice != null && currentPrice.compareTo(newPrice) == 0) {
+            // No effective price change, return current state
+            return ProductMapper.toDomain(entity);
+        }
 
         entity.setPrice(newPrice);
         entity.setUpdatedAt(OffsetDateTime.now());
