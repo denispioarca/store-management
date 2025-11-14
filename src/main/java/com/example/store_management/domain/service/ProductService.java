@@ -1,5 +1,6 @@
 package com.example.store_management.domain.service;
 
+import com.example.store_management.common.exception.ProductNotFoundException;
 import com.example.store_management.domain.model.Product;
 import com.example.store_management.infrastructure.persistence.entity.ProductEntity;
 import com.example.store_management.infrastructure.persistence.mapper.ProductMapper;
@@ -10,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -50,7 +50,7 @@ public class ProductService {
     @Transactional(readOnly = true)
     public Product getProductById(UUID id) {
         ProductEntity entity = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found with id " + id));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id " + id));
         return ProductMapper.toDomain(entity);
     }
 
@@ -68,7 +68,7 @@ public class ProductService {
         }
 
         ProductEntity entity = productRepository.findById(productId)
-                .orElseThrow(() -> new NoSuchElementException("Product not found with id " + productId));
+                .orElseThrow(() -> new ProductNotFoundException("Product not found with id " + productId));
 
         entity.setPrice(newPrice);
         entity.setUpdatedAt(OffsetDateTime.now());

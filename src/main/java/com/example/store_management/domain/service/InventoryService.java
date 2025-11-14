@@ -1,7 +1,8 @@
 package com.example.store_management.domain.service;
 
+import com.example.store_management.common.exception.InsufficientStockException;
+import com.example.store_management.common.exception.InventoryNotFoundException;
 import com.example.store_management.domain.model.Inventory;
-import com.example.store_management.domain.model.InventoryMovementType;
 import com.example.store_management.infrastructure.persistence.entity.InventoryEntity;
 import com.example.store_management.infrastructure.persistence.entity.InventoryMovementEntity;
 import com.example.store_management.infrastructure.persistence.mapper.InventoryMapper;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 /**
@@ -59,58 +59,51 @@ public class InventoryService {
     @Transactional(readOnly = true)
     public Inventory getInventoryForProduct(UUID productId) {
         InventoryEntity entity = inventoryRepository.findByProductId(productId)
-                .orElseThrow(() -> new NoSuchElementException("Inventory not found for product " + productId));
+                .orElseThrow(() -> new InventoryNotFoundException("Inventory not found for product " + productId));
         return InventoryMapper.toDomain(entity);
     }
 
     /**
-     * Adjusts quantity and records an inventory movement.
+     * Adjusts quantity for an existing inventory row and records an inventory movement.
      *
      * @param productId         product identifier
      * @param quantityChange    positive for INCREASE, negative for DECREASE
      * @param performedByUserId user id that triggered the change (can be null for system)
      * @param reason            optional reason/comment
      */
+    @Transactional
     public Inventory adjustQuantity(UUID productId,
                                     long quantityChange,
                                     Long performedByUserId,
                                     String reason) {
 
-        // load or create inventory row
-        InventoryEntity entity = inventoryRepository.findByProductId(productId)
-                .orElseGet(() -> InventoryEntity.builder()
-                        .productId(productId)
-                        .quantity(0L)
-                        .version(0L)
-                        .updatedAt(OffsetDateTime.now())
-                        .build());
+        InventoryEntity entity = inventoryRepository.findById(productId)
+                .orElseThrow(() -> new InventoryNotFoundException(
+                        "Inventory for product id %s was not found".formatted(productId)
+                ));
 
         long currentQuantity = entity.getQuantity() != null ? entity.getQuantity() : 0L;
         long newQuantity = currentQuantity + quantityChange;
 
         if (newQuantity < 0) {
-            throw new IllegalStateException("Insufficient stock for product " + productId);
+            throw new InsufficientStockException(
+                    "Not enough stock for product id %s. Current quantity: %d, requested change: %d"
+                            .formatted(productId, currentQuantity, quantityChange)
+            );
         }
 
         entity.setQuantity(newQuantity);
         entity.setUpdatedAt(OffsetDateTime.now());
         InventoryEntity savedInventory = inventoryRepository.save(entity);
 
-        InventoryMovementType type;
-        if (quantityChange > 0) {
-            type = InventoryMovementType.INCREASE;
-        } else if (quantityChange < 0) {
-            type = InventoryMovementType.DECREASE;
-        } else {
-            type = InventoryMovementType.ADJUSTMENT;
-        }
+        String movementType = resolveMovementType(quantityChange);
 
         InventoryMovementEntity movement = InventoryMovementEntity.builder()
                 .productId(productId)
                 .userId(performedByUserId)
                 .quantityChange(quantityChange)
                 .resultingQuantity(newQuantity)
-                .type(type.name())
+                .type(movementType)
                 .reason(reason)
                 .createdAt(OffsetDateTime.now())
                 .build();
@@ -118,5 +111,14 @@ public class InventoryService {
         inventoryMovementRepository.save(movement);
 
         return InventoryMapper.toDomain(savedInventory);
+    }
+
+    private String resolveMovementType(long quantityChange) {
+        if (quantityChange > 0) {
+            return "INCREASE";
+        } else if (quantityChange < 0) {
+            return "DECREASE";
+        }
+        return "ADJUSTMENT";
     }
 }
