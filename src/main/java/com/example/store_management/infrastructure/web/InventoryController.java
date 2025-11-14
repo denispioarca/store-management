@@ -1,6 +1,7 @@
 package com.example.store_management.infrastructure.web;
 
 import com.example.store_management.application.dto.InventoryAdjustmentRequest;
+import com.example.store_management.application.dto.InventoryMovementResponse;
 import com.example.store_management.application.dto.InventoryResponse;
 import com.example.store_management.application.service.InventoryAppService;
 import jakarta.validation.Valid;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -44,6 +46,23 @@ public class InventoryController {
             @Valid @RequestBody InventoryAdjustmentRequest request) {
 
         InventoryResponse response = inventoryAppService.adjustInventory(productId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Returns all inventory movements for the given product.
+     * <p>
+     * GET /api/inventory/{productId}/movements
+     * <p>
+     * The path variable is the source of truth for productId.
+     */
+    @GetMapping("/{productId}/movements")
+    public ResponseEntity<List<InventoryMovementResponse>> getInventoryMovements(
+            @PathVariable UUID productId) {
+
+        List<InventoryMovementResponse> response =
+                inventoryAppService.getInventoryMovements(productId);
+
         return ResponseEntity.ok(response);
     }
 }

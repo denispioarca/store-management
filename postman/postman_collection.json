@@ -36,6 +36,22 @@
           }
         },
         {
+          "name": "List All Products",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          }
+        },
+        {
           "name": "Get Product by ID",
           "request": {
             "method": "GET",
@@ -76,6 +92,24 @@
                 "products",
                 "{{productId}}",
                 "price"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Price History for Product",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/price-history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{productId}}",
+                "price-history"
               ]
             }
           }
@@ -126,6 +160,24 @@
                 "inventory",
                 "{{productId}}",
                 "adjust"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Inventory Movements for Product",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/{{productId}}/movements",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "inventory",
+                "{{productId}}",
+                "movements"
               ]
             }
           }

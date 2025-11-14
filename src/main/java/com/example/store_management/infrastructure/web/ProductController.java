@@ -1,5 +1,6 @@
 package com.example.store_management.infrastructure.web;
 
+import com.example.store_management.application.dto.PriceChangeHistoryResponse;
 import com.example.store_management.application.dto.ProductCreateRequest;
 import com.example.store_management.application.dto.ProductPriceChangeRequest;
 import com.example.store_management.application.dto.ProductResponse;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -55,6 +57,17 @@ public class ProductController {
     }
 
     /**
+     * Returns a list with all the products.
+     * <p>
+     * GET /api/products
+     */
+    @GetMapping
+    public ResponseEntity<List<ProductResponse>> listAllProducts() {
+        List<ProductResponse> products = productAppService.listAllProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    /**
      * Changes the price of a product.
      * <p>
      * PATCH /api/products/{id}/price
@@ -70,4 +83,16 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Returns a list with all the price history changes based on the product id.
+     * <p>
+     * GET /api/products/{id}/price-history
+     */
+    @GetMapping("/{id}/price-history")
+    public ResponseEntity<List<PriceChangeHistoryResponse>> getPriceHistory(
+            @PathVariable UUID id) {
+
+        List<PriceChangeHistoryResponse> history = productAppService.getPriceHistoryForProduct(id);
+        return ResponseEntity.ok(history);
+    }
 }

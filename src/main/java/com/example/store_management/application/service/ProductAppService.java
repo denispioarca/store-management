@@ -1,18 +1,21 @@
 package com.example.store_management.application.service;
 
+import com.example.store_management.application.dto.PriceChangeHistoryResponse;
 import com.example.store_management.application.dto.ProductCreateRequest;
 import com.example.store_management.application.dto.ProductPriceChangeRequest;
 import com.example.store_management.application.dto.ProductResponse;
+import com.example.store_management.domain.model.PriceChangeHistory;
 import com.example.store_management.domain.model.Product;
 import com.example.store_management.domain.model.ProductStatus;
+import com.example.store_management.domain.service.InventoryService;
 import com.example.store_management.domain.service.PriceChangeHistoryService;
 import com.example.store_management.domain.service.ProductService;
-import com.example.store_management.domain.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -51,6 +54,17 @@ public class ProductAppService {
     }
 
     /**
+     * Returns a list with all the products.
+     */
+    @Transactional(readOnly = true)
+    public List<ProductResponse> listAllProducts() {
+        return productService.getAllProducts()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    /**
      * Changes the price of a product and records the change in price history.
      * This method orchestrates both the product update and the audit in a single transaction.
      */
@@ -73,6 +87,21 @@ public class ProductAppService {
         );
 
         return mapToResponse(after);
+    }
+
+    /**
+     * Returns a list with all the price change history for a product based on the product id.
+     * If the product does not exist, a ProductNotFoundException will be thrown.
+     */
+    @Transactional(readOnly = true)
+    public List<PriceChangeHistoryResponse> getPriceHistoryForProduct(UUID productId) {
+        // Ensure product exists; will throw ProductNotFoundException (404) if not
+        productService.getProductById(productId);
+
+        List<PriceChangeHistory> history = priceChangeHistoryService.getHistoryForProduct(productId);
+        return history.stream()
+                .map(this::mapToPriceHistoryResponse)
+                .toList();
     }
 
     // ---------- Mapping helpers ----------
@@ -103,6 +132,18 @@ public class ProductAppService {
                 product.status().name(),
                 product.createdAt(),
                 product.updatedAt()
+        );
+    }
+
+    private PriceChangeHistoryResponse mapToPriceHistoryResponse(PriceChangeHistory history) {
+        return new PriceChangeHistoryResponse(
+                history.id(),
+                history.oldPrice(),
+                history.newPrice(),
+                history.currency(),
+                history.changedByUserId(),
+                history.reason(),
+                history.changedAt()
         );
     }
 }

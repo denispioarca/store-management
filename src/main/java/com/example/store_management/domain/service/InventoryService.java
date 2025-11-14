@@ -3,9 +3,11 @@ package com.example.store_management.domain.service;
 import com.example.store_management.common.exception.InsufficientStockException;
 import com.example.store_management.common.exception.InventoryNotFoundException;
 import com.example.store_management.domain.model.Inventory;
+import com.example.store_management.domain.model.InventoryMovement;
 import com.example.store_management.infrastructure.persistence.entity.InventoryEntity;
 import com.example.store_management.infrastructure.persistence.entity.InventoryMovementEntity;
 import com.example.store_management.infrastructure.persistence.mapper.InventoryMapper;
+import com.example.store_management.infrastructure.persistence.mapper.InventoryMovementMapper;
 import com.example.store_management.infrastructure.persistence.repo.InventoryMovementRepository;
 import com.example.store_management.infrastructure.persistence.repo.InventoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -61,6 +64,26 @@ public class InventoryService {
         InventoryEntity entity = inventoryRepository.findByProductId(productId)
                 .orElseThrow(() -> new InventoryNotFoundException("Inventory not found for product " + productId));
         return InventoryMapper.toDomain(entity);
+    }
+
+    /**
+     * Returns all inventory movements for a given product, ordered by newest first.
+     * Throws InventoryNotFoundException if no inventory exists for the product.
+     */
+    @Transactional(readOnly = true)
+    public List<InventoryMovement> getMovementsForProduct(UUID productId) {
+        boolean inventoryExists = inventoryRepository.existsById(productId);
+        if (!inventoryExists) {
+            throw new InventoryNotFoundException(
+                    "Inventory for product id %s was not found".formatted(productId)
+            );
+        }
+
+        return inventoryMovementRepository
+                .findByProductIdOrderByCreatedAtDesc(productId)
+                .stream()
+                .map(InventoryMovementMapper::toDomain)
+                .toList();
     }
 
     /**

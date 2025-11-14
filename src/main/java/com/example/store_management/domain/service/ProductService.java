@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -52,6 +53,17 @@ public class ProductService {
         ProductEntity entity = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Product not found with id " + id));
         return ProductMapper.toDomain(entity);
+    }
+
+    /**
+     * Returns a list with all the products.
+     */
+    @Transactional(readOnly = true)
+    public List<Product> getAllProducts() {
+        return productRepository.findAll()
+                .stream()
+                .map(ProductMapper::toDomain)
+                .toList();
     }
 
     /**
