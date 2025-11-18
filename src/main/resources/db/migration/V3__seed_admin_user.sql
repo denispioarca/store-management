@@ -16,7 +16,7 @@ INSERT INTO users (
 SELECT
     'admin'          AS username,
     'admin@example.com' AS email,
-    'admin'          AS password,      -- plain text for now; will switch to BCrypt when Security is implemented
+    '$2b$12$SYDeK09UD9Z07kvAdy3c2exAlTiWX2yFWnXD5xmb3vV8ONlrxhakS' AS password,  -- BCrypt for 'admin'
     'System'         AS first_name,
     'Administrator'  AS last_name,
     '0000000000'     AS phone,

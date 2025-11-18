@@ -2,8 +2,23 @@
   "info": {
     "name": "Store Management API",
     "_postman_id": "c6c6e05e-4b34-4f7d-8b22-93a9d0fe0001",
-    "description": "Postman collection for testing Store Management API.",
+    "description": "Postman collection for testing Store Management API with Basic Auth.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "admin",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "admin",
+        "type": "string"
+      }
+    ]
   },
   "item": [
     {
@@ -12,6 +27,21 @@
         {
           "name": "Create Product",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [
               {
@@ -38,6 +68,21 @@
         {
           "name": "List All Products",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/products",
@@ -54,6 +99,21 @@
         {
           "name": "Get Product by ID",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/products/{{productId}}",
@@ -71,6 +131,21 @@
         {
           "name": "Change Product Price",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "PATCH",
             "header": [
               {
@@ -99,6 +174,21 @@
         {
           "name": "Get Price History for Product",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/products/{{productId}}/price-history",
@@ -122,6 +212,21 @@
         {
           "name": "Get Inventory for Product",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/inventory/{{productId}}",
@@ -139,6 +244,21 @@
         {
           "name": "Adjust Inventory",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "PATCH",
             "header": [
               {
@@ -167,6 +287,21 @@
         {
           "name": "Get Inventory Movements for Product",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/inventory/{{productId}}/movements",
